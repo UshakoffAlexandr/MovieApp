@@ -1,0 +1,79 @@
+body {
+    padding: 0;
+    margin: 0;
+}
+div {
+    padding: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    overflow: hidden;
+}
+
+.container {
+    font-family: 'Inter';
+    display: flex;
+    justify-content: flex-start;
+    column-gap: 20px;
+}
+
+.card {
+    width: 500px;
+    height: 279px;
+    box-shadow: 1px 1px 10px #00000026;
+    border-radius: 0;
+}
+
+.content {
+    width: 90%;
+    margin: 0 auto;
+    padding: 50px 0;
+}
+
+.photo {
+    width: 183px;
+    height: 277px;
+    top: -2px;
+    gap: 0px;
+    opacity: 0px;
+}
+
+.title h5 { 
+    font-size: 25px;
+    line-height: 28px;
+    font-weight: 400;
+    margin: 0.5em 0;
+}
+
+.date {
+    font-size: 12px;
+    color: #827E7E;
+    margin-bottom: 10px;
+}
+
+ul {
+    margin: 0;
+    padding-left: 0;
+    display: flex;
+    column-gap: 5px;
+}
+
+li {
+    list-style-type: none;
+    border-radius: 2px 0px 0px 0px;
+    border: 1px 0px 0px 0px;
+    opacity: 0px;
+    border: 1px solid #D9D9D9;
+    background: #FAFAFA;
+    border-radius: 3px;
+    padding: 2px;
+    color: #000000A6;
+
+}
+
+.description {
+    font-weight: 400;
+    line-height: 22px;
+    margin: 10px;
+    color: #000000;
+}
