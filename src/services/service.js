@@ -1,11 +1,11 @@
-import { React, Component } from "react";
+import { Component } from "react";
 
 
 export default class Service extends Component {
 
 async movie(text) {
     const URL = "https://api.themoviedb.org/3/";
-    const API = "fd8c493649e539fb64b7dacb739c80c6";
+    // const API = "fd8c493649e539fb64b7dacb739c80c6";
 
    const options = {
      method: "GET",
@@ -22,7 +22,7 @@ async movie(text) {
       options
     );
       if(!res.ok) {
-        throw new Error(`Could not fetch ${URL}` + `, recevied ${res.status}`)   
+        throw new Error(`Could not fetch ${URL} , recevied ${res.status}`)   
       }
       
       return await res.json();

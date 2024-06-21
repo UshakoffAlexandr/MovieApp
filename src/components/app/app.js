@@ -3,10 +3,12 @@ import './app.css';
 import CardFilm  from '../card' 
 import Service from '../../services/service'
 import { parse, format } from 'date-fns'
+import mokap from "../card/mokap.jpeg";
+
 
 export default class App extends Component { 
     constructor(props) {
-        super(props);
+        super(props)
         this.state = {
           MovieData: [
             {
@@ -29,7 +31,7 @@ export default class App extends Component {
         const listFilms = new Service();
         let filmsSlice = [];
 
-        listFilms.movie('return').then((res) => {
+        listFilms.movie('kill').then((res) => {
             const films = res.results;
             
             films.forEach((element, index) =>{
@@ -51,8 +53,11 @@ export default class App extends Component {
     }
 
     getImage(id) {
-        const baseURL = "https://image.tmdb.org/t/p/w500";
+      const baseURL = "https://image.tmdb.org/t/p/w500/";
         const stateUrl = this.state.MovieData[id].poster_path;
+        if(stateUrl === null) {
+          return mokap;
+        }
         return baseURL + stateUrl;
     }
 

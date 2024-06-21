@@ -6,8 +6,7 @@ body {
 .container {
     font-family: 'Inter';
     display: flex;
-    justify-content: flex-start;
-    column-gap: 20px;
+    justify-content:flex-end;
 }
 
 .card {
@@ -24,6 +23,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 40px;
+    justify-content: center;
 }
 
 .photo {

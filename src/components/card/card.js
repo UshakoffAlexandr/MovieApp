@@ -1,16 +1,12 @@
-import { React, Component } from "react";
+import { React } from "react";
 import { Card } from "antd";
 import "./card.css";
-import mokap from "./mokap.png";
 
 const CardFilm = ({ title, discription, date, poster_path }) => {
-    if(poster_path.trim() == '') {
-      poster_path = mokap;
-    }
     return (
     <Card className="card" styles={{ body: { padding: 0 } }}>
         <div className="container">
-            <img className="photo" src={ poster_path }></img>
+            <img className="photo" src={poster_path } alt="Poster" />
             <div className="text">
             <div className="title">
                 <h5>{ title }</h5>
