@@ -1,2 +1,2 @@
-import CardFilm from "./card";
-export default CardFilm;
+import CardFilm from './card'
+export default CardFilm
