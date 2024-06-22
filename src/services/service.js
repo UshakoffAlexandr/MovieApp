@@ -1,5 +1,7 @@
 import { Component } from 'react'
 
+import Error from '../components/error'
+
 export default class Service extends Component {
   async movie(text) {
     const URL = 'https://api.themoviedb.org/3/'

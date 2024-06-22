@@ -1,6 +1,8 @@
-import { React, Component } from 'react'
+import React, { Component } from 'react'
 import { parse, format } from 'date-fns'
 
+import Error from '../error'
+import Loader from '../loader'
 import CardFilm from '../card'
 import Service from '../../services/service'
 import mokap from '../card/mokap.jpeg'
@@ -13,42 +15,68 @@ export default class App extends Component {
       MovieData: [
         {
           id: 0,
-          title: 'Avatar',
+          title: '',
           discription: '',
           poster_path: '',
         },
       ],
       loading: true,
+      error: false,
+      offline: !navigator.onLine,
     }
   }
 
   componentDidMount() {
+    window.addEventListener('online', this.handleOnline)
+    window.addEventListener('offline', this.handleOffline)
     this.getTitle()
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('online', this.handleOnline)
+    window.removeEventListener('offline', this.handleOffline)
+  }
+
+  handleOnline = () => {
+    this.setState({ offline: false })
+  }
+
+  handleOffline = () => {
+    this.setState({ offline: true })
+  }
+
   getTitle() {
+    this.setState({ loading: true }) // Устанавливаем состояние загрузки перед началом загрузки данных
+
     const listFilms = new Service()
     let filmsSlice = []
 
-    listFilms.movie('love').then((res) => {
-      const films = res.results
+    listFilms
+      .movie('love')
+      .then((res) => {
+        const films = res.results
 
-      films.forEach((element, index) => {
-        filmsSlice.push({
-          id: index,
-          title: element.title,
-          discription: element.overview,
-          release_date: element.release_date,
-          poster_path: element.poster_path,
+        films.forEach((element, index) => {
+          filmsSlice.push({
+            id: index,
+            title: element.title,
+            discription: element.overview,
+            release_date: element.release_date,
+            poster_path: element.poster_path,
+          })
         })
-      })
-      this.setState(() => {
-        return {
+        this.setState({
           MovieData: filmsSlice,
           loading: false,
-        }
+          error: false,
+        })
       })
-    })
+      .catch(() => {
+        this.setState({
+          loading: false,
+          error: true,
+        })
+      })
   }
 
   getImage(id) {
@@ -68,11 +96,6 @@ export default class App extends Component {
     return newFormatOfDate
   }
 
-  /*
-   * args: desc(string), maxLength(number)
-   * return: string
-   * trim text - desc by words up to maxLength characters
-   */
   truncateDescription(desc, maxLength = 205) {
     if (desc.length <= maxLength) {
       return desc
@@ -103,9 +126,20 @@ export default class App extends Component {
     }
     return j
   }
+
   render() {
-    if (this.state.loading) {
-      return <h1>Loading...</h1>
+    const { loading, error, offline } = this.state
+
+    if (loading) {
+      return <Loader />
+    }
+
+    if (error) {
+      return <Error />
+    }
+
+    if (offline) {
+      return <div className="offline">You are offline. Please check your internet connection.</div>
     }
 
     return <div className="content">{this.config()}</div>
