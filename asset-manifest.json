@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "./static/css/main.0bf3e8ad.css",
-    "main.js": "./static/js/main.7fd87f81.js",
+    "main.css": "./static/css/main.defb8e96.css",
+    "main.js": "./static/js/main.0a2df708.js",
     "static/media/mokap.jpeg": "./static/media/mokap.0d91c1982243ebb50f46.jpeg",
     "index.html": "./index.html",
-    "main.0bf3e8ad.css.map": "./static/css/main.0bf3e8ad.css.map",
-    "main.7fd87f81.js.map": "./static/js/main.7fd87f81.js.map"
+    "main.defb8e96.css.map": "./static/css/main.defb8e96.css.map",
+    "main.0a2df708.js.map": "./static/js/main.0a2df708.js.map"
   },
   "entrypoints": [
-    "static/css/main.0bf3e8ad.css",
-    "static/js/main.7fd87f81.js"
+    "static/css/main.defb8e96.css",
+    "static/js/main.0a2df708.js"
   ]
 }
