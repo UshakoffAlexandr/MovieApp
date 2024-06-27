@@ -1,0 +1,23 @@
+.search-component {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+    
+.search {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 75%;
+  }
+
+input {
+    width: 100%;
+    height: 40px;
+    top: 86px;
+    left: 251px;
+    gap: 0px;
+    opacity: 0px;
+  }
+  

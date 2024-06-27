@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
-import { parse, format } from 'date-fns'
+import { parse, format, isValid } from 'date-fns'
 
 import Error from '../error'
 import Loader from '../loader'
 import CardFilm from '../card'
 import Service from '../../services/service'
+import Search from '../search'
 import mokap from '../card/mokap.jpeg'
 import './app.css'
 
@@ -12,15 +13,8 @@ export default class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      MovieData: [
-        {
-          id: 0,
-          title: '',
-          discription: '',
-          poster_path: '',
-        },
-      ],
-      loading: true,
+      MovieData: [],
+      loading: false,
       error: false,
       offline: !navigator.onLine,
     }
@@ -29,7 +23,7 @@ export default class App extends Component {
   componentDidMount() {
     window.addEventListener('online', this.handleOnline)
     window.addEventListener('offline', this.handleOffline)
-    this.getTitle()
+    this.getTitle('return')
   }
 
   componentWillUnmount() {
@@ -45,38 +39,34 @@ export default class App extends Component {
     this.setState({ offline: true })
   }
 
-  getTitle() {
+  handleSearch = (query) => {
     this.setState({ loading: true }) // Устанавливаем состояние загрузки перед началом загрузки данных
+    this.getTitle(query)
+  }
 
+  async getTitle(query) {
     const listFilms = new Service()
-    let filmsSlice = []
-
-    listFilms
-      .movie('love')
-      .then((res) => {
-        const films = res.results
-
-        films.forEach((element, index) => {
-          filmsSlice.push({
-            id: index,
-            title: element.title,
-            discription: element.overview,
-            release_date: element.release_date,
-            poster_path: element.poster_path,
-          })
-        })
-        this.setState({
-          MovieData: filmsSlice,
-          loading: false,
-          error: false,
-        })
+    try {
+      const res = await listFilms.movie(query)
+      const films = res.results.slice(0, 6) // Ограничиваем количество фильмов до 6
+      const filmsSlice = films.map((element, index) => ({
+        id: index,
+        title: element.title,
+        discription: element.overview,
+        release_date: element.release_date,
+        poster_path: element.poster_path,
+      }))
+      this.setState({
+        MovieData: filmsSlice,
+        loading: false,
+        error: false,
       })
-      .catch(() => {
-        this.setState({
-          loading: false,
-          error: true,
-        })
+    } catch (error) {
+      this.setState({
+        loading: false,
+        error: true,
       })
+    }
   }
 
   getImage(id) {
@@ -89,10 +79,11 @@ export default class App extends Component {
   }
 
   getDate = (id) => {
-    const newFormatOfDate = format(
-      parse(this.state.MovieData[id].release_date, 'yyyy-MM-dd', new Date()),
-      'MMMM d, yyyy'
-    )
+    const date = parse(this.state.MovieData[id].release_date, 'yyyy-MM-dd', new Date())
+    if (!isValid(date)) {
+      return 'Invalid Date'
+    }
+    const newFormatOfDate = format(date, 'MMMM d, yyyy')
     return newFormatOfDate
   }
 
@@ -112,36 +103,32 @@ export default class App extends Component {
   }
 
   config = () => {
-    const j = []
-    for (let i = 0; i < 6; i++) {
-      j.push(
-        <CardFilm
-          poster_path={this.getImage(i)}
-          date={this.getDate(i)}
-          discription={this.truncateDescription(this.state.MovieData[i].discription)}
-          title={this.state.MovieData[i].title}
-          key={i}
-        />
-      )
-    }
-    return j
+    const { MovieData } = this.state
+
+    return MovieData.map((movie, index) => (
+      <CardFilm
+        poster_path={this.getImage(index)}
+        date={this.getDate(index)}
+        discription={this.truncateDescription(movie.discription)}
+        title={movie.title}
+        key={index}
+      />
+    ))
   }
 
   render() {
     const { loading, error, offline } = this.state
 
-    if (loading) {
-      return <Loader />
-    }
-
-    if (error) {
-      return <Error />
-    }
-
     if (offline) {
       return <div className="offline">You are offline. Please check your internet connection.</div>
     }
 
-    return <div className="content">{this.config()}</div>
+    return (
+      <div>
+        <Search onSearch={this.handleSearch} />
+        {loading ? <Loader /> : <div className="content">{this.config()}</div>}
+        {error && <Error />}
+      </div>
+    )
   }
 }

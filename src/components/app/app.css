@@ -73,3 +73,16 @@ li {
     margin: 10px;
     color: #000000;
 }
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .offline {
+    color: red;
+    margin-top: 20px;
+  }
+  
