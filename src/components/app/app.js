@@ -59,7 +59,7 @@ export default class App extends Component {
     const listFilms = new Service()
     try {
       const res = await listFilms.movie(query, page)
-      const films = res.results.slice(0, 6) // Ограничиваем количество фильмов до 6
+      const films = res.results.slice(0, 6)
       const filmsSlice = films.map((element, index) => ({
         id: index,
         title: element.title,
@@ -146,11 +146,7 @@ export default class App extends Component {
         ) : (
           <>
             <div className="content">{this.config()}</div>
-            <Pagination
-              current={currentPage}
-              total={totalPages * 10} // Ant Design Pagination component expects total items, not total pages
-              onChange={this.handlePageChange}
-            />
+            <Pagination current={currentPage} total={totalPages * 10} onChange={this.handlePageChange} />
           </>
         )}
         {error && <Error />}
