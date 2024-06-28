@@ -1,22 +1,28 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { debounce } from 'lodash'
 import './search.css'
 
-export default class Search extends Component {
+export default class Search extends React.Component {
   constructor(props) {
     super(props)
-    this.handleChange = debounce(this.handleChange.bind(this), 100)
+    this.handleChange = debounce(this.handleChange.bind(this), 500) // Используем debounce с задержкой в 500 мс
   }
 
-  handleChange(e) {
-    const query = e.target.value
-    this.props.onSearch(query)
+  handleChange(event) {
+    this.props.onSearch(event.target.value)
   }
 
   render() {
     return (
       <div className="search">
-        <input type="text" placeholder="Search for movies..." onChange={this.handleChange} />
+        <input
+          type="text"
+          placeholder="Search for movies..."
+          onChange={(e) => {
+            e.persist()
+            this.handleChange(e)
+          }}
+        />
       </div>
     )
   }

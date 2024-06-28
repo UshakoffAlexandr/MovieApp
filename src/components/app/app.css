@@ -74,12 +74,30 @@ li {
     color: #000000;
 }
 
+/* app.css */
+/* app.css */
 .app-container {
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
   }
+  
+  .content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px 0;
+  }
+  
+  .no-results {
+    font-size: 18px;
+    color: #888;
+    margin-top: 20px;
+  }
+  
+  
   
   .offline {
     color: red;

@@ -3,10 +3,8 @@ import { Component } from 'react'
 import Error from '../components/error'
 
 export default class Service extends Component {
-  async movie(text) {
+  async movie(text, page = 1) {
     const URL = 'https://api.themoviedb.org/3/'
-    // const API = "fd8c493649e539fb64b7dacb739c80c6";
-
     const options = {
       method: 'GET',
       headers: {
@@ -16,14 +14,12 @@ export default class Service extends Component {
       },
     }
 
-    const query = URL + 'search/movie?'
-    const res = await fetch(query + '&query=' + text, options)
+    const query = `${URL}search/movie?query=${text}&page=${page}`
+    const res = await fetch(query, options)
     if (!res.ok) {
-      throw new Error(`Could not fetch ${URL} , recevied ${res.status}`)
+      throw new Error(`Could not fetch ${URL}, received ${res.status}`)
     }
 
     return await res.json()
   }
 }
-
-//https://api.themoviedb.org/3/search/movie?api_key=fd8c493649e539fb64b7dacb739c80c6&query=return

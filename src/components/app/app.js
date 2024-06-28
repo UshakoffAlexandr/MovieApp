@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { parse, format, isValid } from 'date-fns'
+import { Pagination } from 'antd'
 
 import Error from '../error'
 import Loader from '../loader'
@@ -17,13 +18,16 @@ export default class App extends Component {
       loading: false,
       error: false,
       offline: !navigator.onLine,
+      currentPage: 1,
+      totalPages: 1,
+      query: '',
+      noResults: false,
     }
   }
 
   componentDidMount() {
     window.addEventListener('online', this.handleOnline)
     window.addEventListener('offline', this.handleOffline)
-    this.getTitle('return')
   }
 
   componentWillUnmount() {
@@ -40,14 +44,21 @@ export default class App extends Component {
   }
 
   handleSearch = (query) => {
-    this.setState({ loading: true }) // Устанавливаем состояние загрузки перед началом загрузки данных
-    this.getTitle(query)
+    this.setState({ query, currentPage: 1, loading: true, noResults: false }, () => {
+      this.getTitle(query, 1)
+    })
   }
 
-  async getTitle(query) {
+  handlePageChange = (page) => {
+    this.setState({ currentPage: page, loading: true }, () => {
+      this.getTitle(this.state.query, page)
+    })
+  }
+
+  async getTitle(query, page) {
     const listFilms = new Service()
     try {
-      const res = await listFilms.movie(query)
+      const res = await listFilms.movie(query, page)
       const films = res.results.slice(0, 6) // Ограничиваем количество фильмов до 6
       const filmsSlice = films.map((element, index) => ({
         id: index,
@@ -60,6 +71,8 @@ export default class App extends Component {
         MovieData: filmsSlice,
         loading: false,
         error: false,
+        totalPages: res.total_pages,
+        noResults: filmsSlice.length === 0,
       })
     } catch (error) {
       this.setState({
@@ -117,16 +130,29 @@ export default class App extends Component {
   }
 
   render() {
-    const { loading, error, offline } = this.state
+    const { loading, error, offline, currentPage, totalPages, noResults } = this.state
 
     if (offline) {
       return <div className="offline">You are offline. Please check your internet connection.</div>
     }
 
     return (
-      <div>
+      <div className="app-container">
         <Search onSearch={this.handleSearch} />
-        {loading ? <Loader /> : <div className="content">{this.config()}</div>}
+        {loading ? (
+          <Loader />
+        ) : noResults ? (
+          <div className="no-results">No results found</div>
+        ) : (
+          <>
+            <div className="content">{this.config()}</div>
+            <Pagination
+              current={currentPage}
+              total={totalPages * 10} // Ant Design Pagination component expects total items, not total pages
+              onChange={this.handlePageChange}
+            />
+          </>
+        )}
         {error && <Error />}
       </div>
     )
