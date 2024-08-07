@@ -23,15 +23,7 @@ const Twotabs = ({ onTabChange }) => {
     onTabChange(e.key) // вызываем переданный обработчик клика
   }
 
-  return (
-    <Menu onClick={handleMenuClick} selectedKeys={[current]} mode="horizontal">
-      {items.map((item) => (
-        <Menu.Item key={item.key} icon={item.icon}>
-          {item.label}
-        </Menu.Item>
-      ))}
-    </Menu>
-  )
+  return <Menu onClick={handleMenuClick} selectedKeys={[current]} mode="horizontal" items={items}></Menu>
 }
 
 export default Twotabs

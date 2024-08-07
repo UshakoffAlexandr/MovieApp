@@ -37,13 +37,13 @@ export default class App extends Component {
   async componentDidMount() {
     window.addEventListener('online', this.handleOnline)
     window.addEventListener('offline', this.handleOffline)
-
+    const session = await this.service.createGuestSession()
     try {
-      const session = await this.service.createGuestSession()
       this.setState({ guestSessionId: session.guest_session_id })
     } catch (error) {
       this.setState({ error: true })
     }
+    console.log(session)
   }
 
   componentWillUnmount() {
@@ -75,7 +75,8 @@ export default class App extends Component {
     const listFilms = new Service()
     try {
       const res = await listFilms.movie(query, page)
-      const films = res.results.slice(0, 6)
+      console.log(res)
+      const films = res.results
       const filmsSlice = films.map((element) => ({
         id: element.id, // Используем реальный ID фильма
         title: element.title,
@@ -173,7 +174,7 @@ export default class App extends Component {
           'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZDhjNDkzNjQ5ZTUzOWZiNjRiN2RhY2I3MzljODBjNiIsInN1YiI6IjY2NTJiNWMxODRiNzQ5YjUzZGY3ZWM4NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UAbBLYAt9i-CWOwNDgOd9xm8-RguQgo0Q7hamQKKTbc',
       },
       body: JSON.stringify({
-        value: rating * 2, // Т.к. API ожидает рейтинг от 0 до 10
+        value: rating, // Т.к. API ожидает рейтинг от 0 до 10
       }),
     }
 
@@ -184,7 +185,7 @@ export default class App extends Component {
   }
 
   render() {
-    const { loading, error, offline, currentPage, noResults, currentTab } = this.state
+    const { loading, error, offline, currentPage, noResults, currentTab, totalPages } = this.state
 
     if (offline) {
       return <div className="offline">You are offline. Please check your internet connection.</div>
@@ -204,12 +205,17 @@ export default class App extends Component {
               ) : (
                 <>
                   <div className="content">{this.config()}</div>
-                  <Pagination current={currentPage} total={50} onChange={this.handlePageChange} />
+                  <Pagination
+                    current={currentPage}
+                    showSizeChanger={false}
+                    total={totalPages * 10}
+                    onChange={this.handlePageChange}
+                  />
                 </>
               )}
             </>
           ) : (
-            <Rated ratings={this.state.ratings} />
+            <Rated guestSessionId={this.state.guestSessionId} ratings={this.state.ratings} />
           )}
           {error && <Error />}
         </div>

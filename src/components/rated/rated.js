@@ -23,20 +23,28 @@ export default class Rated extends Component {
     this.service = new Service()
   }
 
-  componentDidMount() {
-    this.getRatedMovies(1)
-  }
-
   handlePageChange = (page) => {
     this.setState({ currentPage: page, loading: true }, () => {
       this.getRatedMovies(page)
     })
   }
 
-  async getRatedMovies(page) {
+  componentDidMount() {
+    this.getRatedMovies()
+    console.log(this.state.RatedMovieData)
+  }
+
+  async getRatedMovies() {
+    this.setState(() => {
+      return { loading: true }
+    })
     try {
-      const res = await this.service.ratedMovies(page)
-      const films = res.results.slice(0, 6)
+      const res = await this.service.ratedMovies(this.props.guestSessionId)
+      console.log(res)
+      if (res) {
+        this.setState({ loading: false })
+      }
+      const films = res.results
       const filmsSlice = films.map((element) => ({
         id: element.id, // Используем реальный ID фильма
         title: element.title,
@@ -113,7 +121,7 @@ export default class Rated extends Component {
   }
 
   render() {
-    const { loading, error, currentPage, noResults } = this.state
+    const { loading, error, currentPage, noResults, totalPages } = this.state
 
     return (
       <div className="rated-container">
@@ -124,10 +132,15 @@ export default class Rated extends Component {
         ) : (
           <>
             <div className="content">{this.config()}</div>
-            <Pagination current={currentPage} total={50} onChange={this.handlePageChange} />
+            {error && <div>Error occurred while fetching rated movies.</div>}
+            <Pagination
+              current={currentPage}
+              total={totalPages * 10}
+              onChange={this.handlePageChange}
+              showSizeChanger={false}
+            />
           </>
         )}
-        {error && <div>Error occurred while fetching rated movies.</div>}
       </div>
     )
   }

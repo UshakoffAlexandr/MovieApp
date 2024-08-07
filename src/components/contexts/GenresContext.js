@@ -5,11 +5,24 @@ export const GenresContext = createContext()
 export const GenresProvider = ({ children }) => {
   const [genres, setGenres] = useState([])
 
+  const getGenre = async () => {
+    const queryURL = `${this.baseURL}/genre/movie/list?language=en`
+    const res = await fetch(queryURL, this.options)
+    if (!res.ok) {
+      throw new Error(`Could not fetch ${queryURL} received ${res.status}`)
+    }
+    const allGenres = await res.json()
+    return allGenres
+  }
+
+  const saveGenres = (res = []) => {
+    setGenres(res)
+  }
+
   useEffect(() => {
     const fetchGenres = async () => {
       const URL = 'https://api.themoviedb.org/3/genre/movie/list'
-      const apiKey =
-        'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZDhjNDkzNjQ5ZTUzOWZiNjRiN2RhY2I3MzljODBjNiIsInN1YiI6IjY2NTJiNWMxODRiNzQ5YjUzZGY3ZWM4NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UAbBLYAt9i-CWOwNDgOd9xm8-RguQgo0Q7hamQKKTbc'
+      const apiKey = 'fd8c493649e539fb64b7dacb739c80c6'
       const response = await fetch(`${URL}?api_key=${apiKey}`)
       const data = await response.json()
       setGenres(data.genres)

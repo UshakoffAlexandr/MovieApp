@@ -10,7 +10,7 @@ const loaderStyle = {
 
 const Loader = () => (
   <div style={loaderStyle}>
-    <Spin tip="Loading" size="large" />
+    <Spin size="large" />
   </div>
 )
 
