@@ -7,8 +7,12 @@ import Loader from '../loader'
 import CardFilm from '../card'
 import Service from '../../services/service'
 import Search from '../search'
+import Twotabs from '../twotabs'
+import Rated from '../rated'
 import mokap from '../card/mokap.jpeg'
 import './app.css'
+import 'antd/dist/reset.css'
+import { GenresProvider } from '../contexts/GenresContext'
 
 export default class App extends Component {
   constructor(props) {
@@ -22,12 +26,24 @@ export default class App extends Component {
       totalPages: 1,
       query: '',
       noResults: false,
+      currentTab: 'mail', // 'mail' для Search, 'app' для Rated
+      ratings: {}, // для хранения рейтингов фильмов
+      guestSessionId: '', // ID гостевой сессии
     }
+
+    this.service = new Service()
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     window.addEventListener('online', this.handleOnline)
     window.addEventListener('offline', this.handleOffline)
+
+    try {
+      const session = await this.service.createGuestSession()
+      this.setState({ guestSessionId: session.guest_session_id })
+    } catch (error) {
+      this.setState({ error: true })
+    }
   }
 
   componentWillUnmount() {
@@ -60,12 +76,13 @@ export default class App extends Component {
     try {
       const res = await listFilms.movie(query, page)
       const films = res.results.slice(0, 6)
-      const filmsSlice = films.map((element, index) => ({
-        id: index,
+      const filmsSlice = films.map((element) => ({
+        id: element.id, // Используем реальный ID фильма
         title: element.title,
         discription: element.overview,
         release_date: element.release_date,
         poster_path: element.poster_path,
+        vote_average: this.state.ratings[element.id] || 0, // получение рейтинга из состояния
       }))
       this.setState({
         MovieData: filmsSlice,
@@ -84,7 +101,7 @@ export default class App extends Component {
 
   getImage(id) {
     const baseURL = 'https://image.tmdb.org/t/p/w500/'
-    const stateUrl = this.state.MovieData[id].poster_path
+    const stateUrl = this.state.MovieData.find((movie) => movie.id === id).poster_path
     if (stateUrl === null) {
       return mokap
     }
@@ -92,7 +109,7 @@ export default class App extends Component {
   }
 
   getDate = (id) => {
-    const date = parse(this.state.MovieData[id].release_date, 'yyyy-MM-dd', new Date())
+    const date = parse(this.state.MovieData.find((movie) => movie.id === id).release_date, 'yyyy-MM-dd', new Date())
     if (!isValid(date)) {
       return 'Invalid Date'
     }
@@ -100,7 +117,7 @@ export default class App extends Component {
     return newFormatOfDate
   }
 
-  truncateDescription(desc, maxLength = 205) {
+  truncateDescription(desc, maxLength = 150) {
     if (desc.length <= maxLength) {
       return desc
     }
@@ -118,39 +135,85 @@ export default class App extends Component {
   config = () => {
     const { MovieData } = this.state
 
-    return MovieData.map((movie, index) => (
+    return MovieData.map((movie) => (
       <CardFilm
-        poster_path={this.getImage(index)}
-        date={this.getDate(index)}
+        poster_path={this.getImage(movie.id)}
+        date={this.getDate(movie.id)}
         discription={this.truncateDescription(movie.discription)}
         title={movie.title}
-        key={index}
+        key={movie.id}
+        rating={movie.rating} // передача рейтинга
+        onRate={(rating) => this.handleRate(movie.id, rating)} // обработка изменения рейтинга
       />
     ))
   }
 
+  handleTabChange = (key) => {
+    this.setState({ currentTab: key })
+  }
+
+  handleRate = (id, rating) => {
+    // Обновляем локальное состояние
+    this.setState((prevState) => ({
+      ratings: {
+        ...prevState.ratings,
+        [id]: rating,
+      },
+    }))
+
+    // Отправляем рейтинг на сервер
+    const { guestSessionId } = this.state
+    const URL = `https://api.themoviedb.org/3/movie/${id}/rating?guest_session_id=${guestSessionId}`
+    const options = {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZDhjNDkzNjQ5ZTUzOWZiNjRiN2RhY2I3MzljODBjNiIsInN1YiI6IjY2NTJiNWMxODRiNzQ5YjUzZGY3ZWM4NSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UAbBLYAt9i-CWOwNDgOd9xm8-RguQgo0Q7hamQKKTbc',
+      },
+      body: JSON.stringify({
+        value: rating * 2, // Т.к. API ожидает рейтинг от 0 до 10
+      }),
+    }
+
+    fetch(URL, options)
+      .then((response) => response.json())
+      .then((data) => console.log('Rating submitted successfully:', data))
+      .catch((error) => console.error('Error submitting rating:', error))
+  }
+
   render() {
-    const { loading, error, offline, currentPage, totalPages, noResults } = this.state
+    const { loading, error, offline, currentPage, noResults, currentTab } = this.state
 
     if (offline) {
       return <div className="offline">You are offline. Please check your internet connection.</div>
     }
 
     return (
-      <div className="app-container">
-        <Search onSearch={this.handleSearch} />
-        {loading ? (
-          <Loader />
-        ) : noResults ? (
-          <div className="no-results">No results found</div>
-        ) : (
-          <>
-            <div className="content">{this.config()}</div>
-            <Pagination current={currentPage} total={totalPages * 10} onChange={this.handlePageChange} />
-          </>
-        )}
-        {error && <Error />}
-      </div>
+      <GenresProvider>
+        <div className="app-container">
+          <Twotabs onTabChange={this.handleTabChange} />
+          {currentTab === 'mail' ? (
+            <>
+              <Search onSearch={this.handleSearch} />
+              {loading ? (
+                <Loader />
+              ) : noResults ? (
+                <div className="no-results">No results found</div>
+              ) : (
+                <>
+                  <div className="content">{this.config()}</div>
+                  <Pagination current={currentPage} total={50} onChange={this.handlePageChange} />
+                </>
+              )}
+            </>
+          ) : (
+            <Rated ratings={this.state.ratings} />
+          )}
+          {error && <Error />}
+        </div>
+      </GenresProvider>
     )
   }
 }
