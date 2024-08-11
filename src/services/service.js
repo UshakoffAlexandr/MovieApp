@@ -31,9 +31,9 @@ export default class Service extends Component {
 
     return await res.json()
   }
-  async ratedMovies(guest_session_id) {
+  async ratedMovies(guest_session_id, page) {
     const baseURL = 'https://api.themoviedb.org/3/'
-    const queryURL = `${baseURL}guest_session/${guest_session_id}/rated/movies?language=en-US&page=1&sort_by=created_at.asc`
+    const queryURL = `${baseURL}guest_session/${guest_session_id}/rated/movies?language=en-US&page=${page}&sort_by=created_at.asc`
     console.log(queryURL)
     const res = await fetch(queryURL, this.options)
     if (!res.ok) {

@@ -25,6 +25,7 @@ export default class Rated extends Component {
 
   handlePageChange = (page) => {
     this.setState({ currentPage: page, loading: true }, () => {
+      console.log(page)
       this.getRatedMovies(page)
     })
   }
@@ -34,38 +35,41 @@ export default class Rated extends Component {
     console.log(this.state.RatedMovieData)
   }
 
-  async getRatedMovies() {
+  getRatedMovies(page = 1) {
     this.setState(() => {
       return { loading: true }
     })
-    try {
-      const res = await this.service.ratedMovies(this.props.guestSessionId)
-      console.log(res)
-      if (res) {
-        this.setState({ loading: false })
-      }
-      const films = res.results
-      const filmsSlice = films.map((element) => ({
-        id: element.id, // Используем реальный ID фильма
-        title: element.title,
-        discription: element.overview,
-        release_date: element.release_date,
-        poster_path: element.poster_path,
-        vote_average: this.props.ratings[element.id] || 0, // получение рейтинга из состояния
-      }))
-      this.setState({
-        RatedMovieData: filmsSlice,
-        loading: false,
-        error: false,
-        totalPages: res.total_pages,
-        noResults: filmsSlice.length === 0,
+    this.service
+      .ratedMovies(this.props.guestSessionId, page)
+      .then((res) => {
+        console.log('page :', page)
+        console.log(res.total_pages) // 1
+        const total_pages = res.total_pages
+        console.log(total_pages)
+        if (res) {
+          this.setState({ loading: false })
+        }
+        const films = res.results
+        const filmsSlice = films.map((element) => ({
+          id: element.id, // Используем реальный ID фильма
+          title: element.title,
+          discription: element.overview,
+          release_date: element.release_date,
+          poster_path: element.poster_path,
+          vote_average: this.props.ratings[element.id] || 0, // получение рейтинга из состояния
+        }))
+        this.setState({
+          RatedMovieData: filmsSlice,
+          loading: false,
+          error: false,
+          totalPages: total_pages,
+          noResults: filmsSlice.length === 0,
+        })
       })
-    } catch (error) {
-      this.setState({
-        loading: false,
-        error: true,
+      .catch((error) => {
+        this.setState({ loading: false, error: true })
+        console.error(error)
       })
-    }
   }
 
   getImage(id) {
@@ -90,7 +94,7 @@ export default class Rated extends Component {
     return newFormatOfDate
   }
 
-  truncateDescription(desc, maxLength = 205) {
+  truncateDescription(desc, maxLength = 145) {
     if (desc.length <= maxLength) {
       return desc
     }
