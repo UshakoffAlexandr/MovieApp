@@ -115,7 +115,7 @@ export default class App extends Component {
   }
 
   getImage(id) {
-    const baseURL = 'https://image.tmdb.org/t/p/w500/'
+    const baseURL = 'https://image.tmdb.org/t/p/w500'
     const stateUrl = this.state.MovieData.find((movie) => movie.id === id)?.poster_path
     if (stateUrl === null) {
       return mokap
