@@ -28,7 +28,6 @@ export default class Rated extends Component {
 
   generateGenre = (genres_ids) => {
     const genres = this.context
-
     return genres_ids?.map((id) => {
       const genre = genres.find((g) => g.id === id)
       if (genre) {
@@ -53,19 +52,24 @@ export default class Rated extends Component {
   }
 
   getRatedMovies(page = 1) {
-    this.setState({ loading: true })
+    this.setState(() => {
+      return { loading: true }
+    })
     this.service
       .ratedMovies(this.props.guestSessionId, page)
       .then((res) => {
         const total_pages = res.total_pages
+        if (res) {
+          this.setState({ loading: false })
+        }
         const films = res.results
         const filmsSlice = films.map((element) => ({
-          id: element.id,
+          id: element.id, // Используем реальный ID фильма
           title: element.title,
           discription: element.overview,
           release_date: element.release_date,
           poster_path: element.poster_path,
-          vote_average: this.props.ratings[element.id] || 0,
+          vote_average: element.vote_average, // получение рейтинга из состояния
           genres_ids: element.genre_ids,
         }))
         this.setState({
@@ -76,9 +80,8 @@ export default class Rated extends Component {
           noResults: filmsSlice.length === 0,
         })
       })
-      .catch((error) => {
+      .catch(() => {
         this.setState({ loading: false, error: true })
-        console.error(error)
       })
   }
 
@@ -124,18 +127,17 @@ export default class Rated extends Component {
 
     return RatedMovieData.map((movie) => (
       <CardFilm
+        genres_ids={movie.genres_ids}
         vote_average={movie.vote_average.toFixed(2)}
         poster_path={this.getImage(movie.id)}
         date={this.getDate(movie.id)}
         discription={this.truncateDescription(movie.discription)}
         title={movie.title}
         key={movie.id}
-        rating={movie.rating}
-        starsRate={this.state.ratings.find((el) => el.id === movie.id)?.rating}
-        onRate={(rating) => this.handleRate(movie.id, rating)}
-      >
-        <ul>{this.generateGenre(movie.genres_ids)}</ul>
-      </CardFilm>
+        rating={movie.rating} // передача рейтинга
+        starsRate={this.state.ratings.find((el) => el.id === movie.id)?.rating} //
+        onRate={(rating) => this.props.handleRate(movie.id, rating)} // обработка изменения рейтинга
+      />
     ))
   }
 

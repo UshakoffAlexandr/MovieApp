@@ -37,13 +37,27 @@ export default class App extends Component {
   async componentDidMount() {
     window.addEventListener('online', this.handleOnline)
     window.addEventListener('offline', this.handleOffline)
-    const session = await this.service.createGuestSession()
-    try {
-      this.setState({ guestSessionId: session.guest_session_id })
-    } catch (error) {
-      this.setState({ error: true })
+
+    // Получение guestSessionId из localStorage
+    const storedSessionId = localStorage.getItem('guestSessionId')
+
+    if (storedSessionId) {
+      this.setState({ guestSessionId: storedSessionId })
+    } else {
+      try {
+        const session = await this.service.createGuestSession()
+        this.setState({ guestSessionId: session.guest_session_id })
+        localStorage.setItem('guestSessionId', session.guest_session_id)
+      } catch (error) {
+        this.setState({ error: true })
+      }
     }
-    console.log(session)
+
+    // Загрузка рейтингов из localStorage
+    const storedRatings = localStorage.getItem('ratings')
+    if (storedRatings) {
+      this.setState({ ratings: JSON.parse(storedRatings) })
+    }
   }
 
   componentWillUnmount() {
@@ -102,7 +116,7 @@ export default class App extends Component {
 
   getImage(id) {
     const baseURL = 'https://image.tmdb.org/t/p/w500/'
-    const stateUrl = this.state.MovieData.find((movie) => movie.id === id).poster_path
+    const stateUrl = this.state.MovieData.find((movie) => movie.id === id)?.poster_path
     if (stateUrl === null) {
       return mokap
     }
@@ -110,12 +124,11 @@ export default class App extends Component {
   }
 
   getDate = (id) => {
-    const date = parse(this.state.MovieData.find((movie) => movie.id === id).release_date, 'yyyy-MM-dd', new Date())
+    const date = parse(this.state.MovieData.find((movie) => movie.id === id)?.release_date, 'yyyy-MM-dd', new Date())
     if (!isValid(date)) {
       return 'Invalid Date'
     }
-    const newFormatOfDate = format(date, 'MMMM d, yyyy')
-    return newFormatOfDate
+    return format(date, 'MMMM d, yyyy')
   }
 
   truncateDescription(desc, maxLength = 140) {
@@ -158,15 +171,20 @@ export default class App extends Component {
 
   handleRate = (id, rating) => {
     const newMovie = { id, rating }
+
     // Обновляем локальное состояние
-    this.setState(
-      (prevState) => ({
-        ratings: [...prevState.ratings, newMovie],
-      }),
-      () => {
-        console.log('id:', id, '\nMYONratings:', this.state.ratings)
-      }
-    )
+    this.setState((prevState) => {
+      const existingRatingIndex = prevState.ratings.findIndex((el) => el.id === id)
+      const updatedRatings =
+        existingRatingIndex === -1
+          ? [...prevState.ratings, newMovie]
+          : prevState.ratings.map((el, index) => (index === existingRatingIndex ? newMovie : el))
+
+      // Сохранение обновленных рейтингов в localStorage
+      localStorage.setItem('ratings', JSON.stringify(updatedRatings))
+
+      return { ratings: updatedRatings }
+    })
 
     // Отправляем рейтинг на сервер
     const { guestSessionId } = this.state
@@ -186,7 +204,7 @@ export default class App extends Component {
 
     fetch(URL, options)
       .then((response) => response.json())
-      .catch((error) => console.error('Error submitting rating:', error))
+      .catch(() => {})
   }
 
   render() {
@@ -221,7 +239,11 @@ export default class App extends Component {
               )}
             </>
           ) : (
-            <Rated guestSessionId={this.state.guestSessionId} ratings={this.state.ratings} />
+            <Rated
+              handleRate={this.handleRate}
+              guestSessionId={this.state.guestSessionId}
+              ratings={this.state.ratings}
+            />
           )}
           {error && <Error />}
         </div>

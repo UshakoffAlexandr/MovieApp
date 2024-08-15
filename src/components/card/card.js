@@ -9,7 +9,6 @@ const { Text } = Typography
 const CardFilm = ({ title, discription, date, poster_path, onRate, starsRate, vote_average, genres_ids }) => {
   const [loading, setLoading] = useState(true)
   const genres = useContext(GenresContext)
-  console.log(genres_ids)
 
   const handleRateChange = (value) => {
     onRate(value)
