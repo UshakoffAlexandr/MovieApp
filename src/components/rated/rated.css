@@ -6,7 +6,7 @@ body {
 .container {
     font-family: 'Inter';
     display: flex;
-    justify-content:flex-end;
+    justify-content: flex-end;
 }
 
 .card {
@@ -35,9 +35,8 @@ body {
 }
 
 .title h5 { 
-    font-size: 25px;
-    line-height: 28px;
-    font-weight: 400;
+    font-size: 20px;
+    line-height: 20px;
     margin: 0.5em 0;
 }
 
@@ -52,19 +51,6 @@ ul {
     padding-left: 0;
     display: flex;
     column-gap: 5px;
-}
-
-li {
-    list-style-type: none;
-    border-radius: 2px 0px 0px 0px;
-    border: 1px 0px 0px 0px;
-    opacity: 0px;
-    border: 1px solid #D9D9D9;
-    background: #FAFAFA;
-    border-radius: 3px;
-    padding: 2px;
-    color: #000000A6;
-
 }
 
 .description {

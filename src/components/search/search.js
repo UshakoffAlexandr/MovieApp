@@ -1,5 +1,6 @@
 import React from 'react'
 import { debounce } from 'lodash'
+import { Input } from 'antd'
 import './search.css'
 
 export default class Search extends React.Component {
@@ -15,7 +16,7 @@ export default class Search extends React.Component {
   render() {
     return (
       <div className="search">
-        <input
+        <Input
           type="text"
           placeholder="Search for movies..."
           onChange={(e) => {

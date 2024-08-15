@@ -27,7 +27,7 @@ export default class App extends Component {
       query: '',
       noResults: false,
       currentTab: 'mail', // 'mail' для Search, 'app' для Rated
-      ratings: {}, // для хранения рейтингов фильмов
+      ratings: [], // для хранения рейтингов фильмов
       guestSessionId: '', // ID гостевой сессии
     }
 
@@ -75,15 +75,15 @@ export default class App extends Component {
     const listFilms = new Service()
     try {
       const res = await listFilms.movie(query, page)
-      console.log(res)
       const films = res.results
       const filmsSlice = films.map((element) => ({
+        genres_ids: element.genre_ids,
         id: element.id, // Используем реальный ID фильма
         title: element.title,
         discription: element.overview,
         release_date: element.release_date,
         poster_path: element.poster_path,
-        vote_average: this.state.ratings[element.id] || 0, // получение рейтинга из состояния
+        vote_average: element.vote_average, // получение рейтинга из состояния
       }))
       this.setState({
         MovieData: filmsSlice,
@@ -118,7 +118,7 @@ export default class App extends Component {
     return newFormatOfDate
   }
 
-  truncateDescription(desc, maxLength = 150) {
+  truncateDescription(desc, maxLength = 140) {
     if (desc.length <= maxLength) {
       return desc
     }
@@ -138,12 +138,15 @@ export default class App extends Component {
 
     return MovieData.map((movie) => (
       <CardFilm
+        genres_ids={movie.genres_ids}
+        vote_average={movie.vote_average.toFixed(2)}
         poster_path={this.getImage(movie.id)}
         date={this.getDate(movie.id)}
         discription={this.truncateDescription(movie.discription)}
         title={movie.title}
         key={movie.id}
         rating={movie.rating} // передача рейтинга
+        starsRate={this.state.ratings.find((el) => el.id === movie.id)?.rating} //
         onRate={(rating) => this.handleRate(movie.id, rating)} // обработка изменения рейтинга
       />
     ))
@@ -154,13 +157,16 @@ export default class App extends Component {
   }
 
   handleRate = (id, rating) => {
+    const newMovie = { id, rating }
     // Обновляем локальное состояние
-    this.setState((prevState) => ({
-      ratings: {
-        ...prevState.ratings,
-        [id]: rating,
-      },
-    }))
+    this.setState(
+      (prevState) => ({
+        ratings: [...prevState.ratings, newMovie],
+      }),
+      () => {
+        console.log('id:', id, '\nMYONratings:', this.state.ratings)
+      }
+    )
 
     // Отправляем рейтинг на сервер
     const { guestSessionId } = this.state
@@ -180,7 +186,6 @@ export default class App extends Component {
 
     fetch(URL, options)
       .then((response) => response.json())
-      .then((data) => console.log('Rating submitted successfully:', data))
       .catch((error) => console.error('Error submitting rating:', error))
   }
 
@@ -206,6 +211,7 @@ export default class App extends Component {
                 <>
                   <div className="content">{this.config()}</div>
                   <Pagination
+                    hideOnSinglePage
                     current={currentPage}
                     showSizeChanger={false}
                     total={totalPages * 10}

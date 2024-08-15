@@ -1,33 +1,49 @@
-import { React, useState } from 'react'
-import { Card, Spin, Rate } from 'antd'
+import { React, useState, useContext } from 'react'
+import { Card, Spin, Rate, Typography } from 'antd'
+
+import { GenresContext } from '../contexts/GenresContext'
+
 import './card.css'
 
-const CardFilm = ({ title, discription, date, poster_path, rating, onRate }) => {
+const { Text } = Typography
+const CardFilm = ({ title, discription, date, poster_path, onRate, starsRate, vote_average, genres_ids }) => {
   const [loading, setLoading] = useState(true)
+  const genres = useContext(GenresContext)
+  console.log(genres_ids)
 
   const handleRateChange = (value) => {
     onRate(value)
   }
 
-  // Определение цвета в зависимости от рейтинга
-  const getRatingColor = (rating) => {
-    if (rating >= 0 && rating < 3) {
+  const getRatingColor = (vote_average) => {
+    if (vote_average < 3) {
       return '#E90000'
-    } else if (rating >= 3 && rating < 5) {
+    } else if (vote_average < 5) {
       return '#E97E00'
-    } else if (rating >= 5 && rating < 7) {
+    } else if (vote_average < 7) {
       return '#E9D100'
     } else {
       return '#66E900'
     }
   }
 
+  const generateGenre = () => {
+    return genres_ids?.map((id) => {
+      const genre = genres.find((g) => g.id === id)
+      if (genre) {
+        return (
+          <li className="genres" key={id}>
+            {genre.name}
+          </li>
+        )
+      }
+      return null
+    })
+  }
+
   return (
     <Card className="card" styles={{ body: { padding: 0 } }}>
       <div className="container">
-        <div className="rating-circle" style={{ backgroundColor: getRatingColor(rating) }}>
-          {rating}
-        </div>
         {loading && (
           <div className="loader">
             <Spin />
@@ -41,18 +57,26 @@ const CardFilm = ({ title, discription, date, poster_path, rating, onRate }) => 
           style={{ display: loading ? 'none' : 'block' }}
         />
         <div className="text">
-          <div className="title">
-            <h5>{title}</h5>
+          <div className="title-rating">
+            <div className="title">
+              <h5>{title}</h5>
+            </div>
+            <div className="rating-circle" style={{ borderColor: getRatingColor(vote_average) }}>
+              <Text
+                style={{
+                  fontSize: 19,
+                }}
+              >
+                {vote_average}
+              </Text>
+            </div>
           </div>
           <div className="date">{date}</div>
-          <div className="genre">
-            <ul>
-              <li>Action</li>
-              <li>Drama</li>
-            </ul>
+          <div className="gen">
+            <ul>{generateGenre()}</ul>
           </div>
           <div className="description">{discription}</div>
-          <Rate allowHalf count={10} defaultValue={rating} onChange={handleRateChange} />
+          <Rate className="stars" allowHalf count={10} defaultValue={starsRate} onChange={handleRateChange} />
         </div>
       </div>
     </Card>

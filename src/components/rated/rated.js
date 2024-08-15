@@ -2,12 +2,15 @@ import React, { Component } from 'react'
 import { parse, format, isValid } from 'date-fns'
 import { Pagination } from 'antd'
 
+import { GenresContext } from '../contexts/GenresContext'
 import CardFilm from '../card'
 import Service from '../../services/service'
 import mokap from '../card/mokap.jpeg'
 import './rated.css'
 
 export default class Rated extends Component {
+  static contextType = GenresContext
+
   constructor(props) {
     super(props)
     this.state = {
@@ -18,45 +21,52 @@ export default class Rated extends Component {
       currentPage: 1,
       totalPages: 1,
       noResults: false,
+      ratings: props.ratings,
     }
-
     this.service = new Service()
+  }
+
+  generateGenre = (genres_ids) => {
+    const genres = this.context
+
+    return genres_ids?.map((id) => {
+      const genre = genres.find((g) => g.id === id)
+      if (genre) {
+        return (
+          <li className="genres" key={id}>
+            {genre.name}
+          </li>
+        )
+      }
+      return null
+    })
   }
 
   handlePageChange = (page) => {
     this.setState({ currentPage: page, loading: true }, () => {
-      console.log(page)
       this.getRatedMovies(page)
     })
   }
 
   componentDidMount() {
     this.getRatedMovies()
-    console.log(this.state.RatedMovieData)
   }
 
   getRatedMovies(page = 1) {
-    this.setState(() => {
-      return { loading: true }
-    })
+    this.setState({ loading: true })
     this.service
       .ratedMovies(this.props.guestSessionId, page)
       .then((res) => {
-        console.log('page :', page)
-        console.log(res.total_pages) // 1
         const total_pages = res.total_pages
-        console.log(total_pages)
-        if (res) {
-          this.setState({ loading: false })
-        }
         const films = res.results
         const filmsSlice = films.map((element) => ({
-          id: element.id, // Используем реальный ID фильма
+          id: element.id,
           title: element.title,
           discription: element.overview,
           release_date: element.release_date,
           poster_path: element.poster_path,
-          vote_average: this.props.ratings[element.id] || 0, // получение рейтинга из состояния
+          vote_average: this.props.ratings[element.id] || 0,
+          genres_ids: element.genre_ids,
         }))
         this.setState({
           RatedMovieData: filmsSlice,
@@ -114,13 +124,18 @@ export default class Rated extends Component {
 
     return RatedMovieData.map((movie) => (
       <CardFilm
+        vote_average={movie.vote_average.toFixed(2)}
         poster_path={this.getImage(movie.id)}
         date={this.getDate(movie.id)}
         discription={this.truncateDescription(movie.discription)}
         title={movie.title}
         key={movie.id}
-        rating={movie.rating} // передача рейтинга
-      />
+        rating={movie.rating}
+        starsRate={this.state.ratings.find((el) => el.id === movie.id)?.rating}
+        onRate={(rating) => this.handleRate(movie.id, rating)}
+      >
+        <ul>{this.generateGenre(movie.genres_ids)}</ul>
+      </CardFilm>
     ))
   }
 
@@ -138,6 +153,7 @@ export default class Rated extends Component {
             <div className="content">{this.config()}</div>
             {error && <div>Error occurred while fetching rated movies.</div>}
             <Pagination
+              hideOnSinglePage
               current={currentPage}
               total={totalPages * 10}
               onChange={this.handlePageChange}

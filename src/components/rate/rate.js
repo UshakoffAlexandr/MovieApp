@@ -1,8 +1,10 @@
 import React from 'react'
 import { Rate } from 'antd'
 
-const RateMovie = ({ rating, onRate }) => (
-  <Rate allowHalf count={10} value={rating} onChange={(value) => onRate(value)} />
-)
+const RateMovie = ({ rating, onRate }) => {
+  console.log('text kakoito', rating)
+
+  return <Rate allowHalf count={10} size="large" onChange={(value) => onRate(value)} defaultValue={rating} />
+}
 
 export default RateMovie
