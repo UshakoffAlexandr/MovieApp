@@ -4,8 +4,6 @@ import { Pagination } from 'antd'
 import Loader from '../loader'
 import Error from '../error'
 import FilmList from '../FilmList/FilmList'
-import mokap from '../assets/mokap.jpeg'
-import { formatReleaseDate, truncateDescription } from '../utils/utils'
 
 export default class Rated extends Component {
   state = {
@@ -36,17 +34,6 @@ export default class Rated extends Component {
     }
   }
 
-  getImage = (id) => {
-    const baseURL = 'https://image.tmdb.org/t/p/w500'
-    const stateUrl = this.state.ratedMovies.find((ratedMovies) => ratedMovies.id === id)?.poster_path
-    return stateUrl ? baseURL + stateUrl : mokap
-  }
-
-  getDate = (id) => {
-    const releaseDate = this.state.ratedMovies.find((ratedMovies) => ratedMovies.id === id)?.release_date
-    return formatReleaseDate(releaseDate)
-  }
-
   handlePageChange = async (page) => {
     this.setState({ currentPage: page, loading: true })
     await this.fetchRatedMovies(page)
@@ -61,13 +48,7 @@ export default class Rated extends Component {
 
     return (
       <div className="rated-container">
-        <FilmList
-          discription={truncateDescription(ratedMovies.discription)}
-          getImage={this.getImage}
-          getDate={this.getDate}
-          movies={ratedMovies}
-          onRate={handleRate}
-        />
+        <FilmList movies={ratedMovies} onRate={handleRate} />
         <Pagination
           hideOnSinglePage
           current={currentPage}
