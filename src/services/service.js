@@ -1,8 +1,6 @@
-import { Component } from 'react'
-
 import { BASE_URL } from '../components/app/app'
 
-export default class Service extends Component {
+export default class Service {
   API_KEY = 'fd8c493649e539fb64b7dacb739c80c6'
   options = {
     method: 'GET',
@@ -39,6 +37,17 @@ export default class Service extends Component {
       throw new Error(`Could not fetch ${queryURL} received ${res.status}`)
     }
     return await res.json()
+  }
+
+  async getGenres() {
+    const apiKey = 'fd8c493649e539fb64b7dacb739c80c6'
+    try {
+      const response = await fetch(`${BASE_URL}genre/movie/list?api_key=${apiKey}`)
+      const data = await response.json()
+      return data.genres
+    } catch (error) {
+      console.error('Error fetching genres:', error)
+    }
   }
 
   async movie(text, page = 1) {

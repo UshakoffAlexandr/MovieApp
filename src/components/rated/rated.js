@@ -4,6 +4,7 @@ import { Pagination } from 'antd'
 import Loader from '../loader'
 import Error from '../error'
 import FilmList from '../FilmList/FilmList'
+import './rated.css'
 
 export default class Rated extends Component {
   state = {
@@ -41,14 +42,13 @@ export default class Rated extends Component {
 
   render() {
     const { loading, error, ratedMovies, currentPage, totalPages } = this.state
-    const { handleRate } = this.props
+    const { handleRate, ratings } = this.props
 
     if (loading) return <Loader />
     if (error) return <Error />
-
     return (
       <div className="rated-container">
-        <FilmList movies={ratedMovies} onRate={handleRate} />
+        <FilmList ratings={ratings} movies={ratedMovies} onRate={handleRate} />
         <Pagination
           hideOnSinglePage
           current={currentPage}

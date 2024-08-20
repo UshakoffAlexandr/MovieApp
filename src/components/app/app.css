@@ -84,6 +84,8 @@ ul {
     justify-content: center;
     gap: 20px;
     padding: 20px 0;
+    width: 90%;
+    margin: 0 auto;
   }
   
   .no-results {

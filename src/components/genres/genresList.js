@@ -13,7 +13,7 @@ class GenreList extends Component {
     return (
       <ul>
         {genres_ids?.map((id) => {
-          const genre = genres.find((g) => g.id === id)
+          const genre = genres?.find((g) => g.id === id)
           return genre ? (
             <li className="genres" key={id}>
               {genre.name}

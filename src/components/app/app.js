@@ -7,12 +7,9 @@ import Service from '../../services/service'
 import Search from '../search'
 import Twotabs from '../twotabs'
 import Rated from '../rated'
-import mokap from '../assets/mokap.jpeg'
 import './app.css'
 import 'antd/dist/reset.css'
-import { GenresProvider } from '../contexts/GenresContext'
 import FilmList from '../FilmList/FilmList'
-import { formatReleaseDate } from '../utils/utils'
 
 export const BASE_URL = 'https://api.themoviedb.org/3/'
 
@@ -94,7 +91,7 @@ export default class App extends Component {
     try {
       const res = await this.service.movie(query, page)
       const filmsSlice = res.results.map((element) => ({
-        genres_ids: element.genre_ids,
+        genre_ids: element.genre_ids,
         id: element.id,
         title: element.title,
         discription: element.overview,
@@ -112,17 +109,6 @@ export default class App extends Component {
     } catch {
       this.setState({ loading: false, error: true })
     }
-  }
-
-  getImage = (id) => {
-    const baseURL = 'https://image.tmdb.org/t/p/w500'
-    const stateUrl = this.state.MovieData.find((movie) => movie.id === id)?.poster_path
-    return stateUrl ? baseURL + stateUrl : mokap
-  }
-
-  getDate = (id) => {
-    const releaseDate = this.state.MovieData.find((movie) => movie.id === id)?.release_date
-    return formatReleaseDate(releaseDate)
   }
 
   handleTabChange = (key) => this.setState({ currentTab: key })
@@ -160,13 +146,7 @@ export default class App extends Component {
           ) : (
             <>
               <div className="content">
-                <FilmList
-                  movies={MovieData}
-                  ratings={ratings}
-                  onRate={this.handleRate}
-                  getImage={this.getImage}
-                  getDate={this.getDate}
-                />
+                <FilmList movies={MovieData} ratings={ratings} onRate={this.handleRate} />
               </div>
               <Pagination
                 hideOnSinglePage
@@ -179,17 +159,20 @@ export default class App extends Component {
           )}
         </>
       ) : (
-        <Rated handleRate={this.handleRate} guestSessionId={this.state.guestSessionId} service={this.service} />
+        <Rated
+          ratings={this.state.ratings}
+          handleRate={this.handleRate}
+          guestSessionId={this.state.guestSessionId}
+          service={this.service}
+        />
       )
 
     return (
-      <GenresProvider>
-        <div className="app-container">
-          <Twotabs onTabChange={this.handleTabChange} />
-          {content}
-          {error && <Error />}
-        </div>
-      </GenresProvider>
+      <div className="app-container">
+        <Twotabs onTabChange={this.handleTabChange} />
+        {content}
+        {error && <Error />}
+      </div>
     )
   }
 }
