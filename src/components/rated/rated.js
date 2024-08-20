@@ -1,168 +1,80 @@
 import React, { Component } from 'react'
-import { parse, format, isValid } from 'date-fns'
 import { Pagination } from 'antd'
 
-import { GenresContext } from '../contexts/GenresContext'
-import CardFilm from '../card'
-import Service from '../../services/service'
-import mokap from '../card/mokap.jpeg'
-import './rated.css'
+import Loader from '../loader'
+import Error from '../error'
+import FilmList from '../FilmList/FilmList'
+import mokap from '../assets/mokap.jpeg'
+import { formatReleaseDate, truncateDescription } from '../utils/utils'
 
 export default class Rated extends Component {
-  static contextType = GenresContext
-
-  constructor(props) {
-    super(props)
-    this.state = {
-      RatedMovieData: [],
-      loading: false,
-      error: false,
-      offline: !navigator.onLine,
-      currentPage: 1,
-      totalPages: 1,
-      noResults: false,
-      ratings: props.ratings,
-    }
-    this.service = new Service()
+  state = {
+    loading: false,
+    error: false,
+    currentPage: 1,
+    totalPages: 1,
+    ratedMovies: [],
   }
 
-  generateGenre = (genres_ids) => {
-    const genres = this.context
-    return genres_ids?.map((id) => {
-      const genre = genres.find((g) => g.id === id)
-      if (genre) {
-        return (
-          <li className="genres" key={id}>
-            {genre.name}
-          </li>
-        )
-      }
-      return null
-    })
+  async componentDidMount() {
+    this.setState({ loading: true })
+    await this.fetchRatedMovies()
   }
 
-  handlePageChange = (page) => {
-    this.setState({ currentPage: page, loading: true }, () => {
-      this.getRatedMovies(page)
-    })
-  }
-
-  componentDidMount() {
-    this.getRatedMovies()
-  }
-
-  getRatedMovies(page = 1) {
-    this.setState(() => {
-      return { loading: true }
-    })
-    this.service
-      .ratedMovies(this.props.guestSessionId, page)
-      .then((res) => {
-        const total_pages = res.total_pages
-        if (res) {
-          this.setState({ loading: false })
-        }
-        const films = res.results
-        const filmsSlice = films.map((element) => ({
-          id: element.id, // Используем реальный ID фильма
-          title: element.title,
-          discription: element.overview,
-          release_date: element.release_date,
-          poster_path: element.poster_path,
-          vote_average: element.vote_average, // получение рейтинга из состояния
-          genres_ids: element.genre_ids,
-        }))
-        this.setState({
-          RatedMovieData: filmsSlice,
-          loading: false,
-          error: false,
-          totalPages: total_pages,
-          noResults: filmsSlice.length === 0,
-        })
+  async fetchRatedMovies(page = 1) {
+    const { guestSessionId, service } = this.props
+    try {
+      const res = await service.ratedMovies(guestSessionId, page)
+      this.setState({
+        ratedMovies: res.results,
+        totalPages: res.total_pages,
+        loading: false,
+        error: false,
       })
-      .catch(() => {
-        this.setState({ loading: false, error: true })
-      })
+    } catch {
+      this.setState({ error: true, loading: false })
+    }
   }
 
-  getImage(id) {
-    const baseURL = 'https://image.tmdb.org/t/p/w500/'
-    const stateUrl = this.state.RatedMovieData.find((movie) => movie.id === id).poster_path
-    if (stateUrl === null) {
-      return mokap
-    }
-    return baseURL + stateUrl
+  getImage = (id) => {
+    const baseURL = 'https://image.tmdb.org/t/p/w500'
+    const stateUrl = this.state.ratedMovies.find((ratedMovies) => ratedMovies.id === id)?.poster_path
+    return stateUrl ? baseURL + stateUrl : mokap
   }
 
   getDate = (id) => {
-    const date = parse(
-      this.state.RatedMovieData.find((movie) => movie.id === id).release_date,
-      'yyyy-MM-dd',
-      new Date()
-    )
-    if (!isValid(date)) {
-      return 'Invalid Date'
-    }
-    const newFormatOfDate = format(date, 'MMMM d, yyyy')
-    return newFormatOfDate
+    const releaseDate = this.state.ratedMovies.find((ratedMovies) => ratedMovies.id === id)?.release_date
+    return formatReleaseDate(releaseDate)
   }
 
-  truncateDescription(desc, maxLength = 145) {
-    if (desc.length <= maxLength) {
-      return desc
-    }
-    const words = desc.split(' ')
-    let truncatedDesc = ''
-    for (let word of words) {
-      if ((truncatedDesc + word).length + 1 > maxLength) {
-        break
-      }
-      truncatedDesc += (truncatedDesc ? ' ' : '') + word
-    }
-    return truncatedDesc + ' ...'
-  }
-
-  config = () => {
-    const { RatedMovieData } = this.state
-
-    return RatedMovieData.map((movie) => (
-      <CardFilm
-        genres_ids={movie.genres_ids}
-        vote_average={movie.vote_average.toFixed(2)}
-        poster_path={this.getImage(movie.id)}
-        date={this.getDate(movie.id)}
-        discription={this.truncateDescription(movie.discription)}
-        title={movie.title}
-        key={movie.id}
-        rating={movie.rating} // передача рейтинга
-        starsRate={this.state.ratings.find((el) => el.id === movie.id)?.rating} //
-        onRate={(rating) => this.props.handleRate(movie.id, rating)} // обработка изменения рейтинга
-      />
-    ))
+  handlePageChange = async (page) => {
+    this.setState({ currentPage: page, loading: true })
+    await this.fetchRatedMovies(page)
   }
 
   render() {
-    const { loading, error, currentPage, noResults, totalPages } = this.state
+    const { loading, error, ratedMovies, currentPage, totalPages } = this.state
+    const { handleRate } = this.props
+
+    if (loading) return <Loader />
+    if (error) return <Error />
 
     return (
       <div className="rated-container">
-        {loading ? (
-          <div>Loading...</div>
-        ) : noResults ? (
-          <div className="no-results">No results found</div>
-        ) : (
-          <>
-            <div className="content">{this.config()}</div>
-            {error && <div>Error occurred while fetching rated movies.</div>}
-            <Pagination
-              hideOnSinglePage
-              current={currentPage}
-              total={totalPages * 10}
-              onChange={this.handlePageChange}
-              showSizeChanger={false}
-            />
-          </>
-        )}
+        <FilmList
+          discription={truncateDescription(ratedMovies.discription)}
+          getImage={this.getImage}
+          getDate={this.getDate}
+          movies={ratedMovies}
+          onRate={handleRate}
+        />
+        <Pagination
+          hideOnSinglePage
+          current={currentPage}
+          showSizeChanger={false}
+          total={totalPages * 10}
+          onChange={this.handlePageChange}
+        />
       </div>
     )
   }

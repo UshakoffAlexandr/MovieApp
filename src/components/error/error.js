@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Alert } from 'antd'
 import Marquee from 'react-fast-marquee'
 
@@ -9,16 +9,21 @@ const errorStyle = {
   height: '100vh',
 }
 
-const Error = () => (
-  <div style={errorStyle}>
-    <Alert
-      banner
-      message={
-        <Marquee pauseOnHover gradient={false}>
-          Something went wrong. Please try again later. Thank you!
-        </Marquee>
-      }
-    />
-  </div>
-)
+class Error extends Component {
+  render() {
+    return (
+      <div style={errorStyle}>
+        <Alert
+          banner
+          message={
+            <Marquee pauseOnHover gradient={false}>
+              Something went wrong. Please try again later. Thank you!
+            </Marquee>
+          }
+        />
+      </div>
+    )
+  }
+}
+
 export default Error

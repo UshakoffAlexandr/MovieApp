@@ -17,6 +17,8 @@ export default class Search extends React.Component {
     return (
       <div className="search">
         <Input
+          id="input"
+          name="input"
           type="text"
           placeholder="Search for movies..."
           onChange={(e) => {

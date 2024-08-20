@@ -1,21 +1,31 @@
-import React, { createContext, useState, useEffect } from 'react'
+import React, { createContext, Component } from 'react'
+
+import { BASE_URL } from '../app/app'
 
 export const GenresContext = createContext()
 
-export const GenresProvider = ({ children }) => {
-  const [genres, setGenres] = useState([])
-
-  useEffect(() => {
-    const fetchGenres = async () => {
-      const URL = 'https://api.themoviedb.org/3/genre/movie/list'
-      const apiKey = 'fd8c493649e539fb64b7dacb739c80c6'
-      const response = await fetch(`${URL}?api_key=${apiKey}`)
-      const data = await response.json()
-      setGenres(data.genres)
+class GenresProvider extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      genres: [],
     }
+  }
 
-    fetchGenres()
-  }, [])
+  async componentDidMount() {
+    const apiKey = 'fd8c493649e539fb64b7dacb739c80c6'
+    try {
+      const response = await fetch(`${BASE_URL}genre/movie/list?api_key=${apiKey}`)
+      const data = await response.json()
+      this.setState({ genres: data.genres })
+    } catch (error) {
+      console.error('Error fetching genres:', error)
+    }
+  }
 
-  return <GenresContext.Provider value={genres}>{children}</GenresContext.Provider>
+  render() {
+    return <GenresContext.Provider value={this.state.genres}>{this.props.children}</GenresContext.Provider>
+  }
 }
+
+export { GenresProvider }

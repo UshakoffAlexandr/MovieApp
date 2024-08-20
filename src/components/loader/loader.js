@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Spin } from 'antd'
 
 const loaderStyle = {
@@ -8,10 +8,14 @@ const loaderStyle = {
   height: '100vh',
 }
 
-const Loader = () => (
-  <div style={loaderStyle}>
-    <Spin size="large" />
-  </div>
-)
+class Loader extends Component {
+  render() {
+    return (
+      <div style={loaderStyle}>
+        <Spin size="large" />
+      </div>
+    )
+  }
+}
 
 export default Loader
